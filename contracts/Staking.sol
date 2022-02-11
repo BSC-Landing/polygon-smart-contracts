@@ -6,12 +6,11 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
+import "hardhat/console.sol";
 
 contract Staking is AccessControl, ReentrancyGuard {
     using SafeERC20 for IERC20;
     using EnumerableSet for EnumerableSet.UintSet;
-
-
 
     struct StakingInfo {
         uint256 rewardsPerEpoch;
@@ -27,7 +26,7 @@ contract Staking is AccessControl, ReentrancyGuard {
         address rewardToken;
     }
 
-    struct Staker {
+    struct Stake {
         uint256 amount;
         uint256 rewardAllowed;
         uint256 rewardDebt;
@@ -35,7 +34,7 @@ contract Staking is AccessControl, ReentrancyGuard {
         uint256 stakeTime;
     }
     mapping(address => EnumerableSet.UintSet) private usersIDSet;
-    mapping(address => mapping(uint256 => Staker)) public stakers;
+    mapping(address => mapping(uint256 => Stake)) public stakes;
 
     // ERC20 DLD token staking to the contract
     // and DLS token earned by stakers as reward.
@@ -172,7 +171,7 @@ contract Staking is AccessControl, ReentrancyGuard {
             update();
         }
 
-        Staker storage staker = stakers[msg.sender][count];
+        Stake storage staker = stakes[msg.sender][count];
         staker.rewardDebt += (_amount * rewardsPerDeposit) / PRECISION;
         staker.amount += _amount;
         staker.stakeTime = block.timestamp;
@@ -182,6 +181,7 @@ contract Staking is AccessControl, ReentrancyGuard {
         usersIDSet[msg.sender].add(count);
 
         emit TokensStaked(_amount, block.timestamp, msg.sender, count);
+        count++;
     }
 
     /**
@@ -190,8 +190,8 @@ contract Staking is AccessControl, ReentrancyGuard {
      *@param _idStake ID stake
      */
     function unstake(uint256 _amount, uint256 _idStake) external nonReentrant {
-        require(!islockUnstake, "is loc kUnstake");
-        Staker storage staker = stakers[msg.sender][_idStake];
+        require(!islockUnstake, "is lock unstake");
+        Stake storage staker = stakes[msg.sender][_idStake];
 
         require(staker.amount >= _amount, "staker.amount < amount");
 
@@ -205,12 +205,12 @@ contract Staking is AccessControl, ReentrancyGuard {
 
         staker.rewardAllowed += ((_amount * rewardsPerDeposit) / PRECISION);
         staker.amount -= _amount;
+        if (staker.amount == 0) {
+            usersIDSet[msg.sender].remove(_idStake);
+        }
 
         IERC20(depositToken).safeTransfer(msg.sender, _amount);
         totalStaked -= _amount;
-
-        usersIDSet[msg.sender].remove(_idStake);
-
         emit TokensUnstaked(_amount, block.timestamp, msg.sender, _idStake);
     }
 
@@ -225,8 +225,8 @@ contract Staking is AccessControl, ReentrancyGuard {
 
         for (uint256 i; i < len; i++) {
             uint256 id = usersIDSet[msg.sender].at(i);
-            Staker storage staker = stakers[msg.sender][id];
-
+            Stake storage staker = stakes[msg.sender][id];
+            // TODO: uncomment
             if ((staker.stakeTime + 7 days) > block.timestamp) {
                 continue;
             }
@@ -283,21 +283,17 @@ contract Staking is AccessControl, ReentrancyGuard {
      *@param _user address user
      *@return returning structure Staker
      */
-    function getUserInfo(address _user)
-        external
-        view
-        returns (Staker[] memory)
-    {
+    function getUserInfo(address _user) external view returns (Stake[] memory) {
         uint256 len = usersIDSet[_user].length();
-        Staker[] memory stakes = new Staker[](len);
+        Stake[] memory userStakes = new Stake[](len);
 
         for (uint256 i; i < len; i++) {
             uint256 id = usersIDSet[_user].at(i);
-            Staker memory stakeByID = stakers[msg.sender][id];
+            Stake memory stakeByID = stakes[_user][id];
             stakeByID.rewardAllowed = getRewardInfo(_user, id);
-            stakes[i] = stakeByID;
+            userStakes[i] = stakeByID;
         }
-        return stakes;
+        return userStakes;
     }
 
     /**
@@ -340,11 +336,11 @@ contract Staking is AccessControl, ReentrancyGuard {
         uint256 _tps,
         uint256 _id
     ) internal view returns (uint256) {
-        Staker memory staker_ = stakers[_user][_id];
+        Stake memory stakeByID = stakes[_user][_id];
         return
-            ((staker_.amount * _tps) / PRECISION) +
-            staker_.rewardAllowed -
-            staker_.distributed -
-            staker_.rewardDebt;
+            ((stakeByID.amount * _tps) / PRECISION) +
+            stakeByID.rewardAllowed -
+            stakeByID.distributed -
+            stakeByID.rewardDebt;
     }
 }
