@@ -201,7 +201,8 @@ contract Staking is AccessControl, ReentrancyGuard {
         //     "lockTime>timestamp"
         // );
 
-        update();
+        // update();
+        totClaim();
 
         staker.rewardAllowed += ((_amount * rewardsPerDeposit) / PRECISION);
         staker.amount -= _amount;
@@ -214,7 +215,7 @@ contract Staking is AccessControl, ReentrancyGuard {
         emit TokensUnstaked(_amount, block.timestamp, msg.sender, _idStake);
     }
 
-    function totClaim() external {
+    function totClaim() public {
         require(!islockClaim, "Staking: claim is not available now");
         if (totalStaked > 0) {
             update();
@@ -227,9 +228,9 @@ contract Staking is AccessControl, ReentrancyGuard {
             uint256 id = usersIDSet[msg.sender].at(i);
             Stake storage staker = stakes[msg.sender][id];
             // TODO: uncomment
-            if ((staker.stakeTime + 7 days) > block.timestamp) {
-                continue;
-            }
+            // if ((staker.stakeTime + 7 days) > block.timestamp) {
+            //     continue;
+            // }
 
             uint256 reward = _calcReward(msg.sender, rewardsPerDeposit, id);
             staker.distributed += reward;

@@ -18,6 +18,6 @@ export default {
 
     bsc_testnet: {
         PLG_ADRESS: '0x458b678dbcb04C7cC8277621A8ea5cd278A984ea',
-        STAKING_ADDRESS:'0x4Ef43c7fEd7866bb512Aa2D30Db0D7cB161eA7f0'
+        STAKING_ADDRESS:'0xE09710f2b41081d461aCdeEc0208339adB8FCBb1'
     }
 } as { [keys: string]: any }
