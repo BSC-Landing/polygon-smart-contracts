@@ -12,12 +12,12 @@ export default {
 
     STAKING: {
         REWARD_PER_EPOCH: new BigNumber('100').shiftedBy(18).toString(),
-        START_TIME: 100000,
+        START_TIME: 1646289228,
         EPOCH_DERATION: 60 * 60 * 24,
     },
 
     bsc_testnet: {
         PLG_ADRESS: '0x458b678dbcb04C7cC8277621A8ea5cd278A984ea',
-        STAKING_ADDRESS:'0xE09710f2b41081d461aCdeEc0208339adB8FCBb1'
+        STAKING_ADDRESS:'0x16F6DEFe4d2FCAe9e90176ff8Da177d668b7797e'
     }
 } as { [keys: string]: any }
