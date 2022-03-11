@@ -10,7 +10,7 @@ const {
 
 
 async function main() {
-	const [deployer] = await ethers.getSigners();
+	const [,deployer] = await ethers.getSigners();
 	const [
 		PLGToken
 	] = await Promise.all([
@@ -20,7 +20,7 @@ async function main() {
 
 
 	console.log('start deploy PLG')
-	const erc20 = await PLGToken.deploy(
+	const erc20 = await PLGToken.connect(deployer).deploy(
 		NAME,
 		SYMBOL,
 		INITIAL_SUPPLY

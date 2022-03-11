@@ -8,7 +8,7 @@ import { ethers, network, run } from 'hardhat'
 const {
 	REWARD_PER_EPOCH,
 	START_TIME,
-	EPOCH_DERATION,
+	EPOCH_DURATION,
 
 } = config.STAKING
 
@@ -17,7 +17,7 @@ const {
 } = config[network.name]
 
 async function main() {
-	const [deployer] = await ethers.getSigners();
+	const [,deployer] = await ethers.getSigners();
 	const [
 		Staking
 	] = await Promise.all([
@@ -27,11 +27,11 @@ async function main() {
 
 
 	console.log('start deploy Staking')
-	const staking = await Staking.deploy(
+	const staking = await Staking.connect(deployer).deploy(
 
 		REWARD_PER_EPOCH,
 		START_TIME,
-		EPOCH_DERATION,
+		EPOCH_DURATION,
 		PLG_ADRESS,
 		PLG_ADRESS
 
@@ -50,7 +50,7 @@ async function main() {
 			constructorArguments: [
 				REWARD_PER_EPOCH,
 				START_TIME,
-				EPOCH_DERATION,
+				EPOCH_DURATION,
 				PLG_ADRESS,
 				PLG_ADRESS
 			],

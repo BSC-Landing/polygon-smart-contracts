@@ -84,23 +84,37 @@ describe("DAOLand Farming test", async () => {
 
             await shiftTime(3600 * 24 * 2)
 
-            await expect( staking.connect(addr[1]).totClaim()).to.revertedWith('nothing to claim');
+            await expect(staking.connect(addr[1]).totClaim()).to.revertedWith('nothing to claim');
 
             await shiftTime(3600 * 24 * 6)
 
             expect(await plg.balanceOf(addr[1].address)).to.equal(ethers.utils.parseEther('800'))
             await staking.connect(addr[1]).totClaim()
             expect(await plg.balanceOf(addr[1].address)).to.closeTo(ethers.utils.parseEther('1600.013'), 1e15)
-            await staking.connect(addr[1]).unstake(ethers.utils.parseEther('50'), 0);
-            expect(await plg.balanceOf(addr[1].address)).to.closeTo(ethers.utils.parseEther('1650.013'), 1e15)
-            await staking.connect(addr[1]).unstake(ethers.utils.parseEther('50'), 0);
+            await shiftTime(3600 * 24 * 20)
 
+            await expect(staking.connect(addr[1]).unstake(ethers.utils.parseEther('50'), 0)).to.revertedWith('lockTime>timestamp');
+            info = await staking.getUserInfo(addr[1].address);
+            expect(info.length).to.equal(2);
+
+            await shiftTime(3600 * 24 * 2)
+            await staking.connect(addr[1]).unstake(ethers.utils.parseEther('50'), 0)
+            expect(await plg.balanceOf(addr[1].address)).to.closeTo(ethers.utils.parseEther('3850.015'), 1e15)
+            info = await staking.getUserInfo(addr[1].address);
+            expect(info.length).to.equal(2);
+
+            await staking.connect(addr[1]).unstake(ethers.utils.parseEther('50'), 0);
             info = await staking.getUserInfo(addr[1].address);
             expect(info.length).to.equal(1);
+
+            await expect(staking.connect(addr[1]).unstake(ethers.utils.parseEther('50'), 0)).to.revertedWith('staker.amount < amount');
+
             await staking.connect(addr[1]).unstake(ethers.utils.parseEther('100'), 1);
 
             info = await staking.getUserInfo(addr[1].address);
             expect(info.length).to.equal(0);
+
+            expect(await plg.balanceOf(addr[1].address)).to.closeTo(ethers.utils.parseEther('4000.018'), 1e15)
         })
     })
 

@@ -9,7 +9,6 @@ contract PLGToken is ERC20, AccessControl {
     using SafeERC20 for IERC20;
 
     bytes32 public constant ADMIN_ROLE = keccak256("ADMIN_ROLE");
-    bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
     bytes32 public constant BURNER_ROLE = keccak256("BURNER_ROLE");
     address private owner;
     bool public paused;
@@ -22,7 +21,6 @@ contract PLGToken is ERC20, AccessControl {
         uint256 _initialSupply
     ) ERC20(_name, _symbol) {
         _setupRole(ADMIN_ROLE, msg.sender);
-        _setupRole(MINTER_ROLE, msg.sender);
         _setupRole(BURNER_ROLE, msg.sender);
         _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
 
@@ -54,13 +52,6 @@ contract PLGToken is ERC20, AccessControl {
         uint256 _amount
     ) internal override notBlocked(_to) pausable(_to) {
         super._beforeTokenTransfer(_from, _to, _amount);
-    }
-
-    function mint(address _account, uint256 _amount)
-        external
-        onlyRole(MINTER_ROLE)
-    {
-        _mint(_account, _amount);
     }
 
     function burn(address _account, uint256 _amount)

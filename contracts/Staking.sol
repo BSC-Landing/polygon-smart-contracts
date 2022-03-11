@@ -195,13 +195,11 @@ contract Staking is AccessControl, ReentrancyGuard {
 
         require(staker.amount >= _amount, "staker.amount < amount");
 
-        //TODO: 30 days
         require(
-            (staker.stakeTime + 30 minutes) < block.timestamp,
+            (staker.stakeTime + 30 days) < block.timestamp,
             "lockTime>timestamp"
         );
 
-        // update();
         totClaim();
 
         staker.rewardAllowed += ((_amount * rewardsPerDeposit) / PRECISION);
@@ -227,8 +225,8 @@ contract Staking is AccessControl, ReentrancyGuard {
         for (uint256 i; i < len; i++) {
             uint256 id = usersIDSet[msg.sender].at(i);
             Stake storage staker = stakes[msg.sender][id];
-            // TODO: 7 days
-            if ((staker.stakeTime + 5 minutes) > block.timestamp) {
+   
+            if ((staker.stakeTime + 7 days) > block.timestamp) {
                 continue;
             }
 
